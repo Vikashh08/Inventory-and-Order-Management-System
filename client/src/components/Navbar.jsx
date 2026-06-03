@@ -104,48 +104,56 @@ export default function Navbar({ activeView, onViewChange, user, onLogout, lowSt
 
             {showDropdown && (
               <div 
-                className="glass-card" 
+                className="glass-card navbar-dropdown-panel" 
                 style={{ 
                   position: 'absolute', 
                   top: '48px', 
-                  right: '8px', 
-                  width: '280px', 
+                  right: '0', 
+                  marginTop: '8px',
+                  width: '300px', 
                   zIndex: '1500', 
                   padding: '16px',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)'
                 }}
               >
-                <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '600' }}>Low Stock Alerts</h4>
+                <div className="flex align-center gap-8" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '12px', color: 'var(--warning)' }}>
+                  <ShieldAlert size={16} />
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>Critical Alerts</h4>
+                  {lowStockCount > 0 && (
+                    <span className="badge danger" style={{ fontSize: '9px', padding: '2px 6px', marginLeft: 'auto' }}>
+                      {lowStockCount}
+                    </span>
+                  )}
                 </div>
                 {lowStockCount === 0 ? (
                   <p style={{ fontSize: '12px', color: 'var(--success)', textAlign: 'center', padding: '12px 0' }}>
                     All stock levels are healthy ✓
                   </p>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                  <div className="dropdown-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
                     {lowStockProducts.map(p => (
                       <div 
                         key={p.id} 
-                        style={{ fontSize: '12px', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '8px', cursor: 'pointer' }}
+                        className="dropdown-alert-item"
+                        style={{ cursor: 'pointer' }}
                         onClick={() => {
                           onViewChange('inventory');
                           setShowDropdown(false);
                         }}
                       >
-                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{p.name}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '11px', marginTop: '2px' }}>
-                          <span>SKU: {p.sku}</span>
-                          <span style={{ color: 'var(--danger)', fontWeight: '600' }}>
-                            {formatQuantity(p.quantity, p.unit)} left
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }} className="alert-item-name">{p.name}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '11px', marginTop: '4px' }}>
+                          <span style={{ fontFamily: 'monospace' }}>{p.sku}</span>
+                          <span style={{ color: 'var(--danger)', fontWeight: '700', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                            {formatQuantity(p.quantity, p.unit)}
                           </span>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '8px', marginTop: '12px', textAlign: 'center' }}>
+                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '10px', marginTop: '12px', textAlign: 'center' }}>
                   <button 
                     onClick={() => {
                       onViewChange('inventory');
