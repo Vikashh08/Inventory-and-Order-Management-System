@@ -35,6 +35,51 @@ function requireRole(roles) {
   };
 }
 
+// Register route
+router.post('/register', async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ error: 'Name, email, password, and role are required' });
+  }
+
+  const validRoles = ['ADMIN', 'SELLER'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: 'Invalid role. Must be ADMIN or SELLER' });
+  }
+
+  try {
+    // Check if user already exists
+    const userCheck = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    if (userCheck.rows.length > 0) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const queryText = `
+      INSERT INTO users (name, email, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, email, role, created_at
+    `;
+    const result = await db.query(queryText, [
+      name.trim(),
+      email.toLowerCase().trim(),
+      passwordHash,
+      role
+    ]);
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
