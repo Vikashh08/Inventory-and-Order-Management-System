@@ -26,7 +26,7 @@ export default function Login({ onViewChange, onLoginSuccess, showToast }) {
     const initGoogle = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+          client_id: "1027859412936-qrcbbomlisq22thsns8ho2lrt6lhn5mk.apps.googleusercontent.com",
           callback: handleGoogleCallback
         });
         window.google.accounts.id.renderButton(
