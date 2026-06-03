@@ -1,14 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Shield, Loader2, Package } from 'lucide-react';
 import api from '../utils/api';
 
-export default function Register({ onViewChange, showToast }) {
+export default function Register({ onViewChange, onLoginSuccess, showToast }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('SELLER');
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleCallback = async (response) => {
+    setLoading(true);
+    try {
+      const data = await api.post('/api/auth/google', { credential: response.credential });
+      api.setToken(data.token);
+      api.setUser(data.user);
+      onLoginSuccess(data.user);
+      showToast('Account created and logged in with Google!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Google Sign-Up failed', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+          callback: handleGoogleCallback
+        });
+        window.google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          { theme: "outline", size: "large", width: "100%", text: "signup_with" }
+        );
+      }
+    };
+
+    if (window.google) {
+      initGoogle();
+    } else {
+      const checkScript = setInterval(() => {
+        if (window.google) {
+          initGoogle();
+          clearInterval(checkScript);
+        }
+      }, 500);
+      return () => clearInterval(checkScript);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -161,6 +203,8 @@ export default function Register({ onViewChange, showToast }) {
             {loading ? <Loader2 size={18} className="spinner" /> : 'Register Account'}
           </button>
         </form>
+
+        <div id="googleSignInDiv" style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}></div>
 
         <div style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '16px', textAlign: 'center' }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
