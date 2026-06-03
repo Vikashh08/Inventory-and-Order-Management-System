@@ -4,11 +4,13 @@ import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import Orders from './pages/Orders';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import api from './utils/api';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(api.getUser());
+  const [unauthView, setUnauthView] = useState('login');
   const [view, setView] = useState('dashboard');
   const [toast, setToast] = useState(null);
 
@@ -44,7 +46,11 @@ export default function App() {
   if (!user) {
     return (
       <>
-        <Login onLoginSuccess={handleLoginSuccess} showToast={showToast} />
+        {unauthView === 'login' ? (
+          <Login onViewChange={setUnauthView} onLoginSuccess={handleLoginSuccess} showToast={showToast} />
+        ) : (
+          <Register onViewChange={setUnauthView} showToast={showToast} />
+        )}
         {toast && (
           <div className={`alert-toast ${toast.type}`}>
             {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
