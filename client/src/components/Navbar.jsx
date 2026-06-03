@@ -1,8 +1,8 @@
 import React from 'react';
-import { LayoutDashboard, Package, ShoppingCart, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, LogOut, ShieldAlert, Bell } from 'lucide-react';
 import api from '../utils/api';
 
-export default function Navbar({ activeView, onViewChange, user, onLogout }) {
+export default function Navbar({ activeView, onViewChange, user, onLogout, lowStockCount }) {
   const isAdmin = user?.role === 'ADMIN';
 
   return (
@@ -47,6 +47,47 @@ export default function Navbar({ activeView, onViewChange, user, onLogout }) {
       </nav>
 
       <div className="flex align-center gap-16">
+        {user && (
+          <div 
+            onClick={() => onViewChange('inventory')}
+            style={{ 
+              position: 'relative', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              padding: '8px', 
+              borderRadius: '50%', 
+              background: 'rgba(255,255,255,0.03)',
+              marginRight: '8px',
+              transition: 'var(--transition-fast)'
+            }}
+            className="navbar-bell"
+            title={lowStockCount > 0 ? `${lowStockCount} low stock alerts` : 'Stock levels healthy'}
+          >
+            <Bell size={18} color={lowStockCount > 0 ? 'var(--warning)' : 'var(--text-secondary)'} />
+            {lowStockCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: 'var(--danger)',
+                color: '#fff',
+                fontSize: '9px',
+                fontWeight: '700',
+                borderRadius: '50%',
+                width: '15px',
+                height: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid var(--bg-darker)'
+              }}>
+                {lowStockCount}
+              </span>
+            )}
+          </div>
+        )}
+
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '14px', fontWeight: '500' }}>{user?.name || 'User'}</div>
           <span className={`badge ${isAdmin ? 'admin' : 'seller'}`}>
