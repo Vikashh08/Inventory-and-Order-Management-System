@@ -20,7 +20,7 @@ export default function Navbar({ activeView, onViewChange, user, onLogout, lowSt
   }, []);
 
   return (
-    <header className="glass-card flex align-center justify-between" style={{ borderRadius: '0 0 14px 14px', borderTop: 'none', padding: '16px 32px', marginBottom: '24px' }}>
+    <header className="glass-card flex align-center justify-between" style={{ position: 'sticky', top: '0', zIndex: '1000', borderRadius: '0 0 14px 14px', borderTop: 'none', padding: '16px 32px', marginBottom: '24px' }}>
       <div className="flex align-center gap-16">
         <div className="flex align-center gap-8" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)', padding: '10px', borderRadius: '10px' }}>
           <Package size={24} color="#fff" />
