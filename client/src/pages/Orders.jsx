@@ -85,6 +85,53 @@ export default function Orders({ user, showToast }) {
     }
   };
 
+  const handleDownloadReceipt = (order) => {
+    if (!order) return;
+
+    const separator = '==================================================';
+    const thinSeparator = '--------------------------------------------------';
+    
+    let text = `${separator}\n`;
+    text += `               APEXINVENTORY RECEIPT\n`;
+    text += `            ${order.status} SUMMARY\n`;
+    text += `${separator}\n\n`;
+    text += `Order Code   : ${order.order_number}\n`;
+    text += `Date         : ${new Date(order.created_at).toLocaleString()}\n`;
+    text += `Customer     : ${order.customer_name}\n`;
+    if (order.customer_email) {
+      text += `Email        : ${order.customer_email}\n`;
+    }
+    text += `Processed By : ${order.creator_name || 'System'}\n\n`;
+    text += `${thinSeparator}\n`;
+    text += `ITEMS SUMMARY:\n`;
+    text += `${thinSeparator}\n`;
+
+    order.items?.forEach((item, idx) => {
+      const formattedQty = formatQuantity(item.quantity, item.unit);
+      text += `${idx + 1}. ${item.product_name || 'Deleted Product'} (SKU: ${item.product_sku || 'N/A'})\n`;
+      text += `   Qty: ${formattedQty}  @ ₹${parseFloat(item.price_per_unit).toFixed(2)} per unit\n`;
+      text += `   Subtotal: ₹${parseFloat(item.subtotal).toFixed(2)}\n\n`;
+    });
+
+    text += `${thinSeparator}\n`;
+    text += `GRAND TOTAL AMOUNT : ₹${parseFloat(order.total_amount).toFixed(2)}\n`;
+    text += `${separator}\n\n`;
+    text += `Thank you for your business!\n`;
+    text += `ApexInventory Order Management System\n`;
+
+    // Create file and download
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Receipt-${order.order_number}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Receipt downloaded successfully!', 'success');
+  };
+
   // Form row manipulation
   const handleAddItemRow = () => {
     setOrderItems([...orderItems, { product_id: '', quantity: '1', unit: 'unit', unitPrice: 0, subtotal: 0 }]);
@@ -515,6 +562,12 @@ export default function Orders({ user, showToast }) {
 
             {/* Action buttons inside details modal if status can be updated */}
             <div className="flex justify-end gap-12" style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+              <button 
+                onClick={() => handleDownloadReceipt(selectedOrder)} 
+                className="glass-btn secondary"
+              >
+                Download Receipt
+              </button>
               {selectedOrder.status === 'QUOTATION' && (
                 <button 
                   onClick={() => handleUpdateStatus(selectedOrder.id, 'COMPLETED')} 
