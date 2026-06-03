@@ -6,12 +6,18 @@ export default function Register({ onViewChange, showToast }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('SELLER');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password || !role) return;
+    if (!name || !email || !password || !confirmPassword || !role) return;
+
+    if (password !== confirmPassword) {
+      showToast('Passwords do not match.', 'error');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -88,6 +94,24 @@ export default function Register({ onViewChange, showToast }) {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                id="confirmPassword"
+                type="password"
+                required
+                className="glass-input"
+                style={{ paddingLeft: '48px' }}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
               />
             </div>
