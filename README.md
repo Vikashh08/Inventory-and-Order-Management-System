@@ -40,6 +40,15 @@ We chose specific database types to make sure numbers are always accurate:
 - **Dashboard Alerts**: Alerts show up immediately on the dashboard if products run low on stock.
 - **Download Receipts**: After submitting an order, you can download a text file receipt of the invoice.
 
+## Design Assumptions & Decisions
+
+We made a few key assumptions during development to ensure a smooth workflow:
+1. **Google Login Roles**: When a user registers or logs in using Google for the first time, the system automatically assigns them the **Seller** role. This prevents guest users from getting administrative access to create or delete products.
+2. **Order Types**: Users can create two types of orders:
+   - **Sales Order (COMPLETED)**: This represents a completed transaction and instantly subtracts the ordered quantities from the product stock.
+   - **Estimate (QUOTATION)**: This is a price quote/estimate and does not modify the inventory levels.
+3. **Unit Matching**: Conversions only run between compatible types (like mass to mass: grams and kilograms; or volume to volume: liters and milliliters). Cross-dimensional checks (like ordering Liters of a product stored in Kilograms) are disabled to prevent weight/volume mismatch errors.
+
 ---
 
 ## Local Setup
