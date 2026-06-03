@@ -12,14 +12,14 @@ export default function App() {
   const [user, setUser] = useState(api.getUser());
   const [unauthView, setUnauthView] = useState('login');
   const [view, setView] = useState('dashboard');
-  const [lowStockCount, setLowStockCount] = useState(0);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [toast, setToast] = useState(null);
 
   const fetchLowStockCount = async () => {
     try {
       if (api.getToken() && api.getUser()) {
         const data = await api.get('/api/products?lowStock=true');
-        setLowStockCount(data.length);
+        setLowStockProducts(data);
       }
     } catch (err) {
       console.error('Failed to fetch low stock count for navbar:', err);
@@ -68,7 +68,7 @@ export default function App() {
         {unauthView === 'login' ? (
           <Login onViewChange={setUnauthView} onLoginSuccess={handleLoginSuccess} showToast={showToast} />
         ) : (
-          <Register onViewChange={setUnauthView} showToast={showToast} />
+          <Register onViewChange={setUnauthView} onLoginSuccess={handleLoginSuccess} showToast={showToast} />
         )}
         {toast && (
           <div className={`alert-toast ${toast.type}`}>
@@ -87,7 +87,7 @@ export default function App() {
         onViewChange={setView} 
         user={user} 
         onLogout={handleLogout} 
-        lowStockCount={lowStockCount}
+        lowStockProducts={lowStockProducts}
       />
 
       <main style={{ flex: '1', padding: '0 8px' }}>
