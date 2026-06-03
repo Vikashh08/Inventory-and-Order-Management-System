@@ -3,6 +3,20 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+async function verifyGoogleToken(token) {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new Error('Google Sign-In is not configured on this server. Missing GOOGLE_CLIENT_ID environment variable.');
+  }
+  const ticket = await googleClient.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID
+  });
+  return ticket.getPayload();
+}
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_inventory_key_123';
@@ -77,6 +91,59 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Google Auth Sign-In / Register route
+router.post('/google', async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    return res.status(400).json({ error: 'Google credential is required.' });
+  }
+
+  try {
+    const payload = await verifyGoogleToken(credential);
+    const { email, name, sub } = payload;
+
+    // Check if user exists
+    let result = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    let user = result.rows[0];
+
+    if (!user) {
+      // Register new user dynamically, default to SELLER
+      const passwordPlaceholder = `google-oauth-placeholder-${sub}`;
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(passwordPlaceholder, salt);
+
+      const insertRes = await db.query(
+        `INSERT INTO users (name, email, password_hash, role) 
+         VALUES ($1, $2, $3, $4) RETURNING id, name, email, role`,
+        [name, email.toLowerCase().trim(), passwordHash, 'SELLER']
+      );
+      user = insertRes.rows[0];
+    }
+
+    // Generate JWT Token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role, name: user.name },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error('Google verification error:', err);
+    res.status(400).json({ error: err.message || 'Google token verification failed' });
   }
 });
 
