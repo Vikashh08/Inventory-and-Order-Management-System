@@ -60,7 +60,7 @@ export default function Dashboard({ onViewChange, showToast }) {
 
         {/* Orders Completed */}
         <div className="glass-card flex align-center gap-16">
-          <div className="flex justify-center align-center" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary)' }}>
+          <div className="flex justify-center align-center" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--primary)' }}>
             <ShoppingBag size={22} />
           </div>
           <div>
@@ -71,7 +71,7 @@ export default function Dashboard({ onViewChange, showToast }) {
 
         {/* Active Quotations */}
         <div className="glass-card flex align-center gap-16">
-          <div className="flex justify-center align-center" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--secondary)' }}>
+          <div className="flex justify-center align-center" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(217, 119, 6, 0.15)', color: 'var(--secondary)' }}>
             <Layers size={22} />
           </div>
           <div>
