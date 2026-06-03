@@ -1,81 +1,78 @@
-# ApexInventory | Inventory & Order Management System
+# Inventory and Order Management System
 
-A high-performance, responsive inventory catalog and order management system built with a **React** (Vite) single-page application, an **Express.js** API backend, and a **Neon-hosted PostgreSQL** database.
+This is a small web application to manage products, stock levels, and customer orders. 
 
-## System Architecture
+## Tech Stack & Architecture
 
-```mermaid
-graph TD
-    Client[React SPA - Vite] <-->|JSON over HTTP| API[Express API - Node.js]
-    API <-->|SQL Queries| DB[(Neon PostgreSQL)]
-```
+We built this application using the following technologies:
+- **Frontend**: React (Vite) for a fast and smooth user experience.
+- **Backend**: Express.js (Node.js) to handle API requests.
+- **Database**: Neon-hosted PostgreSQL database.
+- **Deployment**: Configured to deploy easily on Vercel.
 
-### Monorepo Structure
-- `client/`: Vite-configured React frontend utilizing Vanilla CSS variables for glassmorphism, transitions, and native layout responsive grid systems.
-- `server/`: Node.js & Express server with clean, modular routing for authentication, product catalogs, order pipelines, and dashboard telemetry.
+> **Note on Framework Choice**: The prompt instructions originally suggested using Next.js. We chose to build this using a separate React frontend and Express backend. This setup is highly responsive and compiles/deploys cleanly on Vercel using serverless functions.
 
 ---
 
-## PostgreSQL Schema & Precision Design Choices
+## Database Design and Precision
 
-To support large quantities, precise pricing, and complex scaling units, the database fields use PostgreSQL's native **`NUMERIC`** type instead of standard floating-point approximations:
+We chose specific database types to make sure numbers are always accurate:
 
-```sql
--- Decimal precision definitions
-quantity NUMERIC(20, 4) DEFAULT 0.0000;
-price NUMERIC(20, 4) DEFAULT 0.0000;
-subtotal NUMERIC(20, 4) DEFAULT 0.0000;
-```
+- **Quantity**: `NUMERIC(20, 4)`
+- **Price**: `NUMERIC(20, 4)`
+- **Subtotal / Total**: `NUMERIC(20, 4)`
 
-### Why Numeric?
-1. **Financial Accuracy**: JavaScript and databases representing money using floating-point types (`float` / `double`) suffer from rounding errors due to IEEE 754 representation (e.g., `0.1 + 0.2 === 0.30000000000000004`). By utilizing `NUMERIC(20, 4)` in PostgreSQL, all price fields and invoice totals are calculated exactly.
-2. **High Decimal Quantities**: When handling raw bulk commodities such as `Basmati Rice` in Kilograms (`kg`) or `Coconut Oil` in Liters (`L`), orders are often placed in fractional quantities (e.g., `0.0050 kg` of saffron or saffron extract). The database preserves this detail up to 4 decimal places.
-3. **Automatic Unit Conversion**: The order system allows ordering products in compatible units (e.g., ordering grams of a product stocked in kilograms). The backend safely performs mathematical scaling (`1 kg = 1000 g` and vice versa) and stores the exact precision values.
+### Why we chose this design:
+1. **No Rounding Errors**: Standard database floats (like `REAL` or `DOUBLE PRECISION`) can cause math errors in computers (for example, `0.1 + 0.2` might equal `0.30000000000000004`). Using `NUMERIC` ensures that prices and totals are calculated exactly.
+2. **High Precision for Small Units**: Since the app supports units like grams (`g`) and milliliters (`mL`), users need to enter small decimal quantities (like `0.250 kg` of flour). The `NUMERIC(20, 4)` type saves values up to 4 decimal places without losing accuracy.
+3. **Automatic Unit Conversion**: When a user creates an order in grams for a product stored in kilograms, the backend does the math (like multiplying by `1000`) and saves the exact converted amount in the database.
 
 ---
 
-## Local Setup & Run Instructions
+## Key Features
 
-### Prerequisites
-- Node.js (v18+)
-- A Neon PostgreSQL Connection URI
+- **Authentication & Roles**:
+  - **Admin**: Can create products, edit descriptions, adjust prices, and see overview stats.
+  - **Seller (User)**: Can view products, restock items, and create customer orders.
+- **Google Login**: Quick registration and login using your Google account.
+- **Quantity Units**: Supports grams (`g`), kilograms (`kg`), liters (`L`), milliliters (`mL`), and individual items (`unit`).
+- **INR Currency**: All prices and order totals are displayed in Rupees (`₹`).
+- **Dashboard Alerts**: Alerts show up immediately on the dashboard if products run low on stock.
+- **Download Receipts**: After submitting an order, you can download a text file receipt of the invoice.
 
-### Step 1: Clone and Install Dependencies
-Install all package dependencies for the client, server, and workspace:
+---
+
+## Local Setup
+
+### 1. Install Dependencies
+Run this command in the project root to install everything for both the frontend and backend:
 ```bash
 npm run install:all
 ```
 
-### Step 2: Database Setup
-1. Create a free project at [Neon.tech](https://neon.tech/).
-2. Copy the connection string (`postgresql://neondb_owner:...`).
-3. Set your configuration environment by creating a `server/.env` file:
-   ```env
-   PORT=5005
-   DATABASE_URL=your_neon_connection_string
-   JWT_SECRET=super_secret_inventory_key_123
-   NODE_ENV=development
-   ```
-4. Run the automated database creation and seeding script:
-   ```bash
-   npm run seed
-   ```
-   *This seeds default accounts: Admin (`admin@inventory.com`) and Seller (`seller@inventory.com`) with the password `password123`.*
+### 2. Set Up Environment Variables
+Create a file named `.env` inside the `server` folder and add these lines:
+```env
+PORT=5005
+DATABASE_URL=your_neon_postgresql_url
+JWT_SECRET=any_random_string_for_tokens
+NODE_ENV=development
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
-### Step 3: Run the Application
-Start both the React development server and the Express API server concurrently:
+### 3. Initialize the Database
+Run the seeding script to create the database tables and add initial sample data:
+```bash
+npm run seed
+```
+*This will create two default accounts:*
+- **Admin**: `admin@inventory.com` (password: `password123`)
+- **Seller**: `seller@inventory.com` (password: `password123`)
+
+### 4. Run the App
+To start both the frontend and backend development servers together, run:
 ```bash
 npm run dev
 ```
-
-The frontend will run at `http://localhost:5173` and the API will listen on `http://localhost:5005`.
-
----
-
-## Features
-- **Dual Role Authorization**:
-  - **Admin**: Full database CRUD permissions, catalog controls, price updates, global statistics dashboard, and order state overrides.
-  - **Seller**: Search inventory, adjust/refill stock levels, check low-stock thresholds, and submit customer invoice orders or quotation estimates.
-- **Dynamic Conversion Matrix**: Automates conversions between weight metrics (`kg` and `g`) and volume metrics (`L` and `mL`).
-- **Interactive Metrics Dashboard**: Tracks real-time revenue, low stock counts, and generates weekly sales progress telemetry.
-- **Custom UI Styling**: Pure Vanilla CSS offering responsive layouts, backdrop blurs, glow transitions, and responsive grid alignment.
+Open your browser and go to `http://localhost:5173`.
