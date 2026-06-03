@@ -14,6 +14,11 @@ export default function Register({ onViewChange, showToast }) {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword || !role) return;
 
+    if (password.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'error');
+      return;
+    }
+
     if (password !== confirmPassword) {
       showToast('Passwords do not match.', 'error');
       return;
@@ -97,6 +102,9 @@ export default function Register({ onViewChange, showToast }) {
                 disabled={loading}
               />
             </div>
+            <p style={{ fontSize: '11px', color: password.length >= 6 ? 'var(--success)' : 'var(--text-secondary)', marginTop: '6px' }}>
+              Requirement: Minimum 6 characters {password.length >= 6 && '✓'}
+            </p>
           </div>
 
           <div className="form-group">
@@ -115,6 +123,15 @@ export default function Register({ onViewChange, showToast }) {
                 disabled={loading}
               />
             </div>
+            {confirmPassword && (
+              <p style={{ 
+                fontSize: '11px', 
+                color: password === confirmPassword ? 'var(--success)' : 'var(--danger)', 
+                marginTop: '6px' 
+              }}>
+                {password === confirmPassword ? 'Passwords match ✓' : 'Passwords do not match ✗'}
+              </p>
+            )}
           </div>
 
           <div className="form-group" style={{ marginBottom: '28px' }}>
