@@ -12,7 +12,26 @@ export default function App() {
   const [user, setUser] = useState(api.getUser());
   const [unauthView, setUnauthView] = useState('login');
   const [view, setView] = useState('dashboard');
+  const [lowStockCount, setLowStockCount] = useState(0);
   const [toast, setToast] = useState(null);
+
+  const fetchLowStockCount = async () => {
+    try {
+      if (api.getToken() && api.getUser()) {
+        const data = await api.get('/api/products?lowStock=true');
+        setLowStockCount(data.length);
+      }
+    } catch (err) {
+      console.error('Failed to fetch low stock count for navbar:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLowStockCount();
+    // Refresh stock status every 30 seconds
+    const interval = setInterval(fetchLowStockCount, 30000);
+    return () => clearInterval(interval);
+  }, [user, view]);
 
   // Global toast helper
   const showToast = (message, type = 'success') => {
@@ -68,6 +87,7 @@ export default function App() {
         onViewChange={setView} 
         user={user} 
         onLogout={handleLogout} 
+        lowStockCount={lowStockCount}
       />
 
       <main style={{ flex: '1', padding: '0 8px' }}>
