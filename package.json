@@ -1,0 +1,12 @@
+{
+  "name": "inventory-and-order-management-system",
+  "version": "1.0.0",
+  "description": "Inventory and Order Management System with React, Express, and PostgreSQL",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "seed": "npm run db:init --prefix server",
+    "dev": "npx concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
