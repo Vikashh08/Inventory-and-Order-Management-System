@@ -192,38 +192,45 @@ export default function Dashboard({ onViewChange, showToast }) {
               <p style={{ fontSize: '12px', marginTop: '4px' }}>No items are below minimum thresholds.</p>
             </div>
           ) : (
-            <div className="flex flex-column gap-16">
+            <div className="flex flex-column gap-12">
               {stats.lowStockProducts.map((p) => {
                 const stockVal = parseFloat(p.quantity);
                 const minVal = parseFloat(p.min_stock_level);
                 // Calculate percentage level
                 const stockPercent = Math.min((stockVal / (minVal || 1)) * 100, 100);
+                const isSevere = stockVal === 0 || stockPercent <= 25;
+                const severityClass = isSevere ? 'severe' : 'warning';
                 
                 return (
-                  <div key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '16px' }}>
-                    <div className="flex justify-between align-center" style={{ marginBottom: '8px' }}>
-                      <div>
-                        <div style={{ fontWeight: '600', fontSize: '14px' }}>{p.name}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>SKU: {p.sku}</div>
+                  <div key={p.id} className={`critical-stock-card ${severityClass}`}>
+                    <div className="flex align-start gap-12" style={{ marginBottom: '12px' }}>
+                      <div className={`alert-icon-wrapper ${severityClass}`}>
+                        <ShieldAlert size={16} />
                       </div>
-                      <span className="badge danger" style={{ fontSize: '11px' }}>
-                        {formatQuantity(p.quantity, p.unit)}
-                      </span>
+                      <div style={{ flex: '1' }}>
+                        <div className="flex justify-between align-start">
+                          <div>
+                            <h4 className="stock-product-name">{p.name}</h4>
+                            <span className="stock-product-sku">SKU: {p.sku}</span>
+                          </div>
+                          <div className="stock-status-badge">
+                            {isSevere ? 'Critical' : 'Low Stock'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex align-center gap-16">
-                      {/* Visual progress bar */}
-                      <div style={{ flex: '1', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ 
-                          width: `${stockPercent}%`, 
-                          height: '100%', 
-                          background: stockPercent < 30 ? 'var(--danger)' : 'var(--warning)', 
-                          borderRadius: '3px' 
-                        }} />
+                    <div>
+                      <div className="flex justify-between" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                        <span>Current: <strong style={{ color: isSevere ? 'var(--danger)' : 'var(--warning)' }}>{formatQuantity(p.quantity, p.unit)}</strong></span>
+                        <span>Min: <strong>{formatQuantity(p.min_stock_level, p.unit)}</strong></span>
                       </div>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                        Min: {formatQuantity(p.min_stock_level, p.unit)}
-                      </span>
+                      <div className="stock-progress-track">
+                        <div 
+                          className={`stock-progress-bar ${severityClass}`} 
+                          style={{ width: `${Math.max(stockPercent, 4)}%` }} 
+                        />
+                      </div>
                     </div>
                   </div>
                 );
@@ -266,6 +273,115 @@ export default function Dashboard({ onViewChange, showToast }) {
           transition: var(--transition-fast);
           white-space: nowrap;
           box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .critical-stock-card {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 14px 16px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+        .critical-stock-card::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 3px;
+          border-radius: 3px 0 0 3px;
+        }
+        .critical-stock-card.severe::before {
+          background: var(--danger);
+        }
+        .critical-stock-card.warning::before {
+          background: var(--warning);
+        }
+        .critical-stock-card:hover {
+          transform: translateY(-2px);
+          background: rgba(255, 255, 255, 0.04);
+        }
+        .critical-stock-card.severe:hover {
+          border-color: rgba(239, 68, 68, 0.3);
+          box-shadow: 0 8px 24px rgba(239, 68, 68, 0.08);
+        }
+        .critical-stock-card.warning:hover {
+          border-color: rgba(245, 158, 11, 0.3);
+          box-shadow: 0 8px 24px rgba(245, 158, 11, 0.08);
+        }
+        .alert-icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          flex-shrink: 0;
+        }
+        .alert-icon-wrapper.severe {
+          background: rgba(239, 68, 68, 0.12);
+          color: var(--danger);
+          animation: icon-pulse-red 2.5s infinite;
+        }
+        .alert-icon-wrapper.warning {
+          background: rgba(245, 158, 11, 0.12);
+          color: var(--warning);
+        }
+        @keyframes icon-pulse-red {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .stock-product-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-primary);
+          line-height: 1.2;
+          margin-bottom: 2px;
+        }
+        .stock-product-sku {
+          font-size: 11px;
+          color: var(--text-muted);
+          font-family: monospace;
+        }
+        .stock-status-badge {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+        .severe .stock-status-badge {
+          background: rgba(239, 68, 68, 0.1);
+          color: var(--danger);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .warning .stock-status-badge {
+          background: rgba(245, 158, 11, 0.1);
+          color: var(--warning);
+          border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .stock-progress-track {
+          height: 6px;
+          background: rgba(255, 255, 255, 0.04);
+          border-radius: 3px;
+          overflow: hidden;
+          position: relative;
+          margin-top: 4px;
+        }
+        .stock-progress-bar {
+          height: 100%;
+          border-radius: 3px;
+        }
+        .stock-progress-bar.severe {
+          background: linear-gradient(90deg, #f87171, var(--danger));
+          box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+        }
+        .stock-progress-bar.warning {
+          background: linear-gradient(90deg, #fbbf24, var(--warning));
+          box-shadow: 0 0 6px rgba(245, 158, 11, 0.3);
         }
       `}</style>
     </div>
